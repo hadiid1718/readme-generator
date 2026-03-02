@@ -32,7 +32,7 @@ export const sendExpirationWarning = async (
     day: 'numeric',
   });
 
-  const subject = `⚠️ Your README Pro subscription expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`;
+  const subject = `Your README Pro subscription expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`;
 
   const html = `
     <!DOCTYPE html>
@@ -51,7 +51,7 @@ export const sendExpirationWarning = async (
                 <tr>
                   <td style="background: linear-gradient(135deg, #6366f1, #3b82f6); padding: 32px; text-align: center;">
                     <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">
-                      📝 README Generator Pro
+                      README Generator Pro
                     </h1>
                   </td>
                 </tr>
@@ -65,12 +65,12 @@ export const sendExpirationWarning = async (
                     <p style="margin: 0 0 24px; color: #94a3b8; font-size: 16px; line-height: 1.6;">
                       Your <strong style="color: #fbbf24;">Pro subscription</strong> is expiring on 
                       <strong style="color: #f8fafc;">${formattedDate}</strong> 
-                      — that's just <strong style="color: #ef4444;">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong> away.
+                      -- that's just <strong style="color: #ef4444;">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong> away.
                     </p>
                     
                     <div style="background-color: #0f172a; border-radius: 12px; padding: 24px; margin-bottom: 24px; border: 1px solid #334155;">
                       <h3 style="margin: 0 0 12px; color: #fbbf24; font-size: 16px;">
-                        ⭐ What you'll lose without Pro:
+                        What you'll lose without Pro:
                       </h3>
                       <ul style="margin: 0; padding-left: 20px; color: #94a3b8; font-size: 14px; line-height: 2;">
                         <li>Unlimited README exports</li>
@@ -123,9 +123,9 @@ export const sendExpirationWarning = async (
       subject,
       html,
     });
-    console.log(`📧 Expiration warning sent to ${to} (${daysLeft} days left)`);
+    console.log(`[EMAIL] Expiration warning sent to ${to} (${daysLeft} days left)`);
   } catch (error) {
-    console.error(`❌ Failed to send expiration email to ${to}:`, error);
+    console.error(`[ERROR] Failed to send expiration email to ${to}:`, error);
   }
 };
 
@@ -136,7 +136,7 @@ export const sendExpiredNotification = async (
   to: string,
   name: string
 ): Promise<void> => {
-  const subject = '😢 Your README Pro subscription has expired';
+  const subject = 'Your README Pro subscription has expired';
 
   const html = `
     <!DOCTYPE html>
@@ -153,7 +153,7 @@ export const sendExpiredNotification = async (
                 <tr>
                   <td style="background: linear-gradient(135deg, #6366f1, #3b82f6); padding: 32px; text-align: center;">
                     <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">
-                      📝 README Generator Pro
+                      README Generator Pro
                     </h1>
                   </td>
                 </tr>
@@ -204,9 +204,9 @@ export const sendExpiredNotification = async (
       subject,
       html,
     });
-    console.log(`📧 Expiration notification sent to ${to}`);
+    console.log(`[EMAIL] Expiration notification sent to ${to}`);
   } catch (error) {
-    console.error(`❌ Failed to send expired email to ${to}:`, error);
+    console.error(`[ERROR] Failed to send expired email to ${to}:`, error);
   }
 };
 
@@ -215,16 +215,16 @@ export const sendExpiredNotification = async (
  */
 export const verifyEmailConnection = async (): Promise<boolean> => {
   if (!config.email.user || !config.email.pass) {
-    console.log('⚠️ Email credentials not configured — email notifications disabled');
+    console.log('[WARN] Email credentials not configured -- email notifications disabled');
     return false;
   }
 
   try {
     await transporter.verify();
-    console.log('✅ Email service connected');
+    console.log('[OK] Email service connected');
     return true;
   } catch (error) {
-    console.warn('⚠️ Email service not available:', (error as Error).message);
+    console.warn('[WARN] Email service not available:', (error as Error).message);
     return false;
   }
 };

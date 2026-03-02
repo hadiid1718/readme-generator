@@ -17,7 +17,7 @@ import config from '../config';
  * Only sends one email per user per day (tracked via a simple date check).
  */
 const checkExpiringSubscriptions = async (): Promise<void> => {
-  console.log('🔄 Running subscription expiration check...');
+  console.log('[CRON] Running subscription expiration check...');
 
   const now = new Date();
   const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -55,7 +55,7 @@ const checkExpiringSubscriptions = async (): Promise<void> => {
 
         if (!alreadyLogged) {
           // We don't create a history entry for warnings, only for actual expiration
-          console.log(`  📧 Warning sent to ${user.email} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`);
+          console.log(`  [EMAIL] Warning sent to ${user.email} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`);
         }
       }
     }
@@ -88,12 +88,12 @@ const checkExpiringSubscriptions = async (): Promise<void> => {
       // Send notification email
       await sendExpiredNotification(user.email, user.name);
 
-      console.log(`  ⬇️ User ${user.email} downgraded to free plan`);
+      console.log(`  [DOWNGRADE] User ${user.email} downgraded to free plan`);
     }
 
-    console.log('✅ Subscription expiration check complete');
+    console.log('[OK] Subscription expiration check complete');
   } catch (error) {
-    console.error('❌ Subscription expiration check failed:', error);
+    console.error('[ERROR] Subscription expiration check failed:', error);
   }
 };
 
@@ -107,11 +107,11 @@ export const startSubscriptionWorkflow = (): void => {
     checkExpiringSubscriptions();
   });
 
-  console.log('⏰ Subscription expiration workflow scheduled (daily at 9:00 AM)');
+  console.log('[CRON] Subscription expiration workflow scheduled (daily at 9:00 AM)');
 
   // Run immediately on startup in development for testing
   if (config.nodeEnv === 'development') {
-    console.log('  🧪 Running initial check in development mode...');
+    console.log('  [DEV] Running initial check in development mode...');
     // Delay by 5s to let DB connection stabilize
     setTimeout(() => {
       checkExpiringSubscriptions();

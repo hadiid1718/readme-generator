@@ -113,7 +113,7 @@ export const handleWebhookEvent = async (event: Stripe.Event): Promise<void> => 
           details: 'Pro plan subscription started',
         });
 
-        console.log(`✅ User ${userId} upgraded to Pro plan`);
+        console.log(`[OK] User ${userId} upgraded to Pro plan`);
       }
       break;
     }
@@ -145,7 +145,7 @@ export const handleWebhookEvent = async (event: Stripe.Event): Promise<void> => 
             });
           }
 
-          console.log(`✅ Subscription renewed for user ${user._id}`);
+          console.log(`[OK] Subscription renewed for user ${user._id}`);
         }
       }
       break;
@@ -170,7 +170,7 @@ export const handleWebhookEvent = async (event: Stripe.Event): Promise<void> => 
             details: 'Payment failed for subscription renewal',
           });
 
-          console.log(`⚠️ Payment failed for user ${user._id}`);
+          console.log(`[WARN] Payment failed for user ${user._id}`);
         }
       }
       break;
@@ -196,7 +196,7 @@ export const handleWebhookEvent = async (event: Stripe.Event): Promise<void> => 
           details: 'Subscription canceled and reverted to free plan',
         });
 
-        console.log(`⚠️ Subscription canceled for user ${user._id}`);
+        console.log(`[WARN] Subscription canceled for user ${user._id}`);
       }
       break;
     }

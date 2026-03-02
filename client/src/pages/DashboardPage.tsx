@@ -76,6 +76,14 @@ const DashboardPage = () => {
 
   useEffect(() => {
     loadReadmes();
+
+    // Real-time polling for user dashboard stats (every 60 seconds)
+    const pollInterval = setInterval(() => {
+      loadReadmes();
+      // Silently re-fetch auth data
+    }, 60_000);
+
+    return () => clearInterval(pollInterval);
   }, []);
 
   const loadReadmes = async (page = 1) => {
@@ -259,7 +267,14 @@ const DashboardPage = () => {
               <div>
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-                  <p className="text-dark-400 mt-1">Welcome back, {user?.name}</p>
+                  <p className="text-dark-400 mt-1 flex items-center space-x-2">
+                    <span>Welcome back, {user?.name}</span>
+                    <span className="text-dark-600">·</span>
+                    <span className="flex items-center space-x-1 text-xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                      <span className="text-dark-500">Live</span>
+                    </span>
+                  </p>
                 </div>
 
                 {/* Stats Cards */}

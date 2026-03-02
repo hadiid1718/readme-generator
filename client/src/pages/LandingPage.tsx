@@ -133,7 +133,7 @@ const LandingPage = () => {
               </div>
               {/* Fake markdown content */}
               <div className="p-6 text-left font-mono text-sm space-y-3">
-                <p className="text-primary-400 text-lg font-bold"># 🚀 My Awesome Project</p>
+                <p className="text-primary-400 text-lg font-bold"># My Awesome Project</p>
                 <p className="text-dark-300">&gt; A powerful tool that transforms your workflow</p>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-2 py-0.5 bg-blue-600/20 text-blue-400 rounded text-xs">React</span>
@@ -141,10 +141,10 @@ const LandingPage = () => {
                   <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 rounded text-xs">TypeScript</span>
                   <span className="px-2 py-0.5 bg-yellow-600/20 text-yellow-400 rounded text-xs">MIT License</span>
                 </div>
-                <p className="text-dark-400">## ✨ Features</p>
-                <p className="text-dark-300">- ✅ Blazing fast performance</p>
-                <p className="text-dark-300">- ✅ Beautiful, responsive UI</p>
-                <p className="text-dark-300">- ✅ Full TypeScript support</p>
+                <p className="text-dark-400">## Features</p>
+                <p className="text-dark-300">- Blazing fast performance</p>
+                <p className="text-dark-300">- Beautiful, responsive UI</p>
+                <p className="text-dark-300">- Full TypeScript support</p>
                 <p className="text-dark-500">...</p>
               </div>
             </div>
@@ -233,7 +233,7 @@ const LandingPage = () => {
                 role: "Open Source Maintainer",
               },
               {
-                quote: "Finally, a README generator that actually produces good markdown. The badges integration is 🔥.",
+                quote: "Finally, a README generator that actually produces good markdown. The badges integration is fire.",
                 name: "Alex Rivera",
                 role: "DevOps Engineer",
               },

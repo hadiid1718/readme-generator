@@ -24,10 +24,10 @@ const seedAdmin = async (): Promise<void> => {
         plan: 'pro',
         isEmailVerified: true,
       });
-      console.log('✅ Default admin created: admin@readmepro.com / Admin@123');
+      console.log('[OK] Default admin created: admin@readmepro.com / Admin@123');
     }
   } catch (error) {
-    console.error('⚠️  Failed to seed admin:', error);
+    console.error('[WARN] Failed to seed admin:', error);
   }
 };
 

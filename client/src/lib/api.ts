@@ -94,6 +94,8 @@ export const paymentAPI = {
 export const adminAPI = {
   getStats: () => api.get('/admin/stats'),
 
+  getSubscriptionStats: () => api.get('/admin/subscription-stats'),
+
   getUsers: (page = 1, limit = 20, search = '', plan = '', role = '') => {
     const params = new URLSearchParams();
     params.set('page', String(page));

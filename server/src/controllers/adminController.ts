@@ -196,6 +196,131 @@ export const updateUser = catchAsync(
 );
 
 /**
+ * Get detailed subscription & revenue analytics
+ * GET /api/admin/subscription-stats
+ */
+export const getSubscriptionStats = catchAsync(
+  async (_req: Request, res: Response, _next: NextFunction) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+    const [
+      totalUsers,
+      proUsers,
+      freeUsers,
+      activeSubscriptions,
+      canceledSubscriptions,
+      pastDueSubscriptions,
+      totalRevenueAgg,
+      monthlyRevenueAgg,
+      lastMonthRevenueAgg,
+      monthlyRevenueChart,
+      recentTransactions,
+      newProThisMonth,
+      newFreeThisMonth,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ plan: 'pro' }),
+      User.countDocuments({ plan: 'free' }),
+      User.countDocuments({ subscriptionStatus: 'active' }),
+      User.countDocuments({ subscriptionStatus: 'canceled' }),
+      User.countDocuments({ subscriptionStatus: 'past_due' }),
+      // Total all-time revenue
+      SubscriptionHistory.aggregate([
+        { $match: { event: { $in: ['subscribed', 'renewed'] }, amount: { $gt: 0 } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      // Current month revenue
+      SubscriptionHistory.aggregate([
+        {
+          $match: {
+            event: { $in: ['subscribed', 'renewed'] },
+            amount: { $gt: 0 },
+            createdAt: { $gte: startOfMonth },
+          },
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      // Last month revenue
+      SubscriptionHistory.aggregate([
+        {
+          $match: {
+            event: { $in: ['subscribed', 'renewed'] },
+            amount: { $gt: 0 },
+            createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth },
+          },
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      // Monthly revenue for the last 12 months
+      SubscriptionHistory.aggregate([
+        {
+          $match: {
+            event: { $in: ['subscribed', 'renewed'] },
+            amount: { $gt: 0 },
+            createdAt: { $gte: new Date(now.getFullYear(), now.getMonth() - 11, 1) },
+          },
+        },
+        {
+          $group: {
+            _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+            total: { $sum: '$amount' },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1 } },
+      ]),
+      // Recent transactions
+      SubscriptionHistory.find({ amount: { $gt: 0 } })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('userId', 'name email plan'),
+      // New pro users this month
+      User.countDocuments({ plan: 'pro', createdAt: { $gte: startOfMonth } }),
+      // New free users this month
+      User.countDocuments({ plan: 'free', createdAt: { $gte: startOfMonth } }),
+    ]);
+
+    const totalRevenue = totalRevenueAgg[0]?.total || 0;
+    const monthlyRevenue = monthlyRevenueAgg[0]?.total || 0;
+    const lastMonthRevenue = lastMonthRevenueAgg[0]?.total || 0;
+    const revenueGrowth = lastMonthRevenue > 0
+      ? (((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
+      : monthlyRevenue > 0 ? '100.0' : '0.0';
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        overview: {
+          totalUsers,
+          proUsers,
+          freeUsers,
+          proPercentage: totalUsers > 0 ? ((proUsers / totalUsers) * 100).toFixed(1) : '0.0',
+          activeSubscriptions,
+          canceledSubscriptions,
+          pastDueSubscriptions,
+        },
+        revenue: {
+          totalRevenue,
+          monthlyRevenue,
+          lastMonthRevenue,
+          revenueGrowth,
+          monthlyChart: monthlyRevenueChart,
+        },
+        activity: {
+          newProThisMonth,
+          newFreeThisMonth,
+          recentTransactions,
+        },
+        _fetchedAt: new Date().toISOString(),
+      },
+    });
+  }
+);
+
+/**
  * Delete a user
  * DELETE /api/admin/users/:id
  */

@@ -18,7 +18,7 @@ export const advancedTemplate = (input: ReadmeInput): string => {
   // ============ Hero Header ============
   sections.push(`<div align="center">
 
-# 🚀 ${input.projectName}
+# ${input.projectName}
 
 ### ${input.description}
 
@@ -41,27 +41,27 @@ ${input.githubRepo ? `<a href="${input.githubRepo}"><img src="https://img.shield
 
   // ============ Table of Contents ============
   sections.push(`<details>
-<summary><strong>📋 Table of Contents</strong></summary>
+<summary><strong>Table of Contents</strong></summary>
 
 <br />
 
 | Section | Description |
 |---------|-------------|
-| [🎯 Overview](#-overview) | What this project does |
-| [🏗️ Architecture](#-architecture) | System design & tech stack |
-| [✨ Features](#-features) | Key capabilities |
-| [🚀 Quick Start](#-quick-start) | Get up and running |
-| [💡 Usage](#-usage) | How to use the project |
-${input.apiDocs ? '| [📡 API Docs](#-api-documentation) | API reference |\n' : ''}${input.screenshots.length > 0 ? '| [📸 Screenshots](#-screenshots) | Visual preview |\n' : ''}| [🗺️ Roadmap](#-roadmap) | Future plans |
-| [🤝 Contributing](#-contributing) | How to contribute |
-| [📄 License](#-license) | License information |
+| [Overview](#-overview) | What this project does |
+| [Architecture](#-architecture) | System design & tech stack |
+| [Features](#-features) | Key capabilities |
+| [Quick Start](#-quick-start) | Get up and running |
+| [Usage](#-usage) | How to use the project |
+${input.apiDocs ? '| [API Docs](#-api-documentation) | API reference |\n' : ''}${input.screenshots.length > 0 ? '| [Screenshots](#-screenshots) | Visual preview |\n' : ''}| [Roadmap](#-roadmap) | Future plans |
+| [Contributing](#-contributing) | How to contribute |
+| [License](#-license) | License information |
 
 </details>
 
 ---`);
 
   // ============ Overview ============
-  sections.push(`## 🎯 Overview
+  sections.push(`## Overview
 
 ${input.description}
 
@@ -74,7 +74,7 @@ ${input.description}
 | Poor developer experience | Intuitive API & UI |`);
 
   // ============ Architecture ============
-  sections.push(`## 🏗️ Architecture
+  sections.push(`## Architecture
 
 ### Tech Stack
 
@@ -86,7 +86,7 @@ ${input.description}
 ${input.techStack
   .map(
     (tech: string) =>
-      `<tr><td align="center">🔧</td><td>${generateTechBadge(tech)}</td></tr>`
+      `<tr><td align="center">-</td><td>${generateTechBadge(tech)}</td></tr>`
   )
   .join('\n')}
 </table>
@@ -95,29 +95,29 @@ ${input.techStack
 
 \`\`\`
 ${input.projectName.toLowerCase().replace(/\s+/g, '-')}/
-├── 📁 src/           # Source code
-├── 📁 tests/         # Test files
-├── 📁 docs/          # Documentation
-├── 📄 README.md      # This file
-├── 📄 LICENSE        # License file
-└── 📄 package.json   # Dependencies
+├── src/           # Source code
+├── tests/         # Test files
+├── docs/          # Documentation
+├── README.md      # This file
+├── LICENSE        # License file
+└── package.json   # Dependencies
 \`\`\``);
 
   // ============ Features ============
   const featRows = input.features
-    .map((f: string, i: number) => `| ${i + 1} | ✅ | ${f} |`)
+    .map((f: string, i: number) => `| ${i + 1} | Done | ${f} |`)
     .join('\n');
-  sections.push(`## ✨ Features
+  sections.push(`## Features
 
 | # | Status | Feature |
 |---|--------|---------|
 ${featRows}
 
-> 💡 **Pro Tip:** Check out the [roadmap](#-roadmap) for upcoming features!`);
+> **Pro Tip:** Check out the [roadmap](#-roadmap) for upcoming features!`);
 
   // ============ Quick Start ============
   if (input.installation.length > 0) {
-    sections.push(`## 🚀 Quick Start
+    sections.push(`## Quick Start
 
 ### Prerequisites
 
@@ -160,14 +160,14 @@ npm test
 
   // ============ Usage ============
   if (input.usage) {
-    sections.push(`## 💡 Usage
+    sections.push(`## Usage
 
 ${input.usage}`);
   }
 
   // ============ API Documentation ============
   if (input.apiDocs) {
-    sections.push(`## 📡 API Documentation
+    sections.push(`## API Documentation
 
 ${input.apiDocs}`);
   }
@@ -181,7 +181,7 @@ ${input.apiDocs}`);
       )
       .join('\n');
 
-    sections.push(`## 📸 Screenshots
+    sections.push(`## Screenshots
 
 <div align="center">
 
@@ -200,7 +200,7 @@ ${screenshotGallery}
   }
 
   // ============ Roadmap ============
-  sections.push(`## 🗺️ Roadmap
+  sections.push(`## Roadmap
 
 - [x] Initial release
 - [x] Core features
@@ -212,7 +212,7 @@ ${screenshotGallery}
 > See the [open issues](${input.githubRepo ? input.githubRepo + '/issues' : '#'}) for a full list of proposed features and known issues.`);
 
   // ============ Contributing ============
-  sections.push(`## 🤝 Contributing
+  sections.push(`## Contributing
 
 We love contributions! Here's how to get started:
 
@@ -251,12 +251,12 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 </details>`);
 
   // ============ License ============
-  sections.push(`## 📄 License
+  sections.push(`## License
 
 Distributed under the **${input.license}** License. See [\`LICENSE\`](LICENSE) for more information.`);
 
   // ============ Author & Acknowledgments ============
-  sections.push(`## 👨‍💻 Author
+  sections.push(`## Author
 
 <table>
 <tr>
@@ -275,11 +275,11 @@ ${input.authorWebsite ? `<a href="${input.authorWebsite}"><img src="https://img.
 
 <div align="center">
 
-### ⭐ Star this repo if you find it useful!
+### Star this repo if you find it useful!
 
-Made with ❤️ by [${input.authorName}](${input.authorGithub ? `https://github.com/${input.authorGithub}` : '#'})
+Made with love by [${input.authorName}](${input.authorGithub ? `https://github.com/${input.authorGithub}` : '#'})
 
-${input.githubRepo ? `[⬆ Back to Top](#-${input.projectName.toLowerCase().replace(/\s+/g, '-')})` : ''}
+${input.githubRepo ? `[Back to Top](#-${input.projectName.toLowerCase().replace(/\s+/g, '-')})` : ''}
 
 </div>`);
 

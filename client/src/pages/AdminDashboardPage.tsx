@@ -21,6 +21,16 @@ import {
   LogOut,
   Eye,
   X,
+  TrendingUp,
+  TrendingDown,
+  CreditCard,
+  Activity,
+  RefreshCw,
+  ArrowUpRight,
+  ArrowDownRight,
+  Clock,
+  Zap,
+  PieChart,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
@@ -48,7 +58,41 @@ interface AdminUser {
   createdAt: string;
 }
 
-type AdminSection = 'overview' | 'users';
+interface SubscriptionStats {
+  overview: {
+    totalUsers: number;
+    proUsers: number;
+    freeUsers: number;
+    proPercentage: string;
+    activeSubscriptions: number;
+    canceledSubscriptions: number;
+    pastDueSubscriptions: number;
+  };
+  revenue: {
+    totalRevenue: number;
+    monthlyRevenue: number;
+    lastMonthRevenue: number;
+    revenueGrowth: string;
+    monthlyChart: { _id: { year: number; month: number }; total: number; count: number }[];
+  };
+  activity: {
+    newProThisMonth: number;
+    newFreeThisMonth: number;
+    recentTransactions: {
+      _id: string;
+      userId: { _id: string; name: string; email: string; plan: string } | null;
+      event: string;
+      plan: string;
+      amount: number;
+      currency: string;
+      createdAt: string;
+      details: string;
+    }[];
+  };
+  _fetchedAt: string;
+}
+
+type AdminSection = 'overview' | 'users' | 'subscriptions';
 
 // ============ Main Admin Dashboard ============
 const AdminDashboardPage = () => {
@@ -80,20 +124,60 @@ const AdminDashboardPage = () => {
   const [viewingUser, setViewingUser] = useState<any>(null);
   const [viewLoading, setViewLoading] = useState(false);
 
+  // Subscription stats
+  const [subStats, setSubStats] = useState<SubscriptionStats | null>(null);
+  const [subStatsLoading, setSubStatsLoading] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  // Real-time polling interval (30 seconds)
+  const POLL_INTERVAL = 30_000;
+
   useEffect(() => {
     loadStats();
+
+    // Real-time polling for overview stats
+    const statsInterval = setInterval(() => {
+      loadStats(true);
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(statsInterval);
   }, []);
 
-  const loadStats = async () => {
-    setStatsLoading(true);
+  // Real-time polling for subscription stats
+  useEffect(() => {
+    if (activeSection === 'subscriptions') {
+      loadSubStats();
+      const subInterval = setInterval(() => {
+        loadSubStats(true);
+      }, POLL_INTERVAL);
+      return () => clearInterval(subInterval);
+    }
+  }, [activeSection]);
+
+  const loadStats = async (silent = false) => {
+    if (!silent) setStatsLoading(true);
     try {
       const res = await adminAPI.getStats();
       setStats(res.data.data.stats);
       setRecentUsers(res.data.data.recentUsers);
+      setLastRefresh(new Date());
     } catch {
-      toast.error('Failed to load admin stats');
+      if (!silent) toast.error('Failed to load admin stats');
     } finally {
       setStatsLoading(false);
+    }
+  };
+
+  const loadSubStats = async (silent = false) => {
+    if (!silent) setSubStatsLoading(true);
+    try {
+      const res = await adminAPI.getSubscriptionStats();
+      setSubStats(res.data.data);
+      setLastRefresh(new Date());
+    } catch {
+      if (!silent) toast.error('Failed to load subscription stats');
+    } finally {
+      setSubStatsLoading(false);
     }
   };
 
@@ -177,6 +261,7 @@ const AdminDashboardPage = () => {
 
   const sidebarItems: { key: AdminSection; label: string; icon: React.ReactNode }[] = [
     { key: 'overview', label: 'Overview', icon: <BarChart3 className="w-5 h-5" /> },
+    { key: 'subscriptions', label: 'Subscriptions', icon: <CreditCard className="w-5 h-5" /> },
     { key: 'users', label: 'Users', icon: <Users className="w-5 h-5" /> },
   ];
 
@@ -258,7 +343,10 @@ const AdminDashboardPage = () => {
               <div>
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold text-white">Admin Overview</h1>
-                  <p className="text-dark-400 mt-1">System stats and recent activity</p>
+                  <p className="text-dark-400 mt-1 flex items-center space-x-2">
+                    <Activity className="w-3.5 h-3.5 text-green-400 animate-pulse" />
+                    <span>Live · Auto-refreshes every 30s · {lastRefresh.toLocaleTimeString()}</span>
+                  </p>
                 </div>
 
                 {statsLoading ? (
@@ -375,6 +463,305 @@ const AdminDashboardPage = () => {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            )}
+
+            {/* ========== SUBSCRIPTIONS ========== */}
+            {activeSection === 'subscriptions' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white">Subscriptions & Revenue</h1>
+                    <p className="text-dark-400 mt-1 flex items-center space-x-2">
+                      <Activity className="w-3.5 h-3.5 text-green-400 animate-pulse" />
+                      <span>Live data · Last updated {lastRefresh.toLocaleTimeString()}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => loadSubStats()}
+                    className="btn-secondary text-sm flex items-center space-x-2"
+                    disabled={subStatsLoading}
+                  >
+                    <RefreshCw className={`w-4 h-4 ${subStatsLoading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+                </div>
+
+                {subStatsLoading && !subStats ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                  </div>
+                ) : subStats ? (
+                  <>
+                    {/* Revenue Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                      <div className="card bg-gradient-to-br from-emerald-900/20 to-dark-800 border-emerald-800/30">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-10 h-10 bg-emerald-600/20 rounded-xl flex items-center justify-center">
+                            <DollarSign className="w-5 h-5 text-emerald-400" />
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-400">ALL TIME</span>
+                        </div>
+                        <p className="text-sm text-dark-400">Total Revenue</p>
+                        <p className="text-3xl font-bold text-white mt-1">${subStats.revenue.totalRevenue.toFixed(2)}</p>
+                      </div>
+
+                      <div className="card bg-gradient-to-br from-blue-900/20 to-dark-800 border-blue-800/30">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center">
+                            <TrendingUp className="w-5 h-5 text-blue-400" />
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/20 text-blue-400">THIS MONTH</span>
+                        </div>
+                        <p className="text-sm text-dark-400">Monthly Revenue</p>
+                        <p className="text-3xl font-bold text-white mt-1">${subStats.revenue.monthlyRevenue.toFixed(2)}</p>
+                        <div className="flex items-center mt-2 text-xs">
+                          {parseFloat(subStats.revenue.revenueGrowth) >= 0 ? (
+                            <span className="flex items-center text-green-400">
+                              <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
+                              {subStats.revenue.revenueGrowth}% vs last month
+                            </span>
+                          ) : (
+                            <span className="flex items-center text-red-400">
+                              <ArrowDownRight className="w-3.5 h-3.5 mr-0.5" />
+                              {subStats.revenue.revenueGrowth}% vs last month
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="card bg-gradient-to-br from-amber-900/20 to-dark-800 border-amber-800/30">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-10 h-10 bg-amber-600/20 rounded-xl flex items-center justify-center">
+                            <Crown className="w-5 h-5 text-amber-400" />
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-400">PRO</span>
+                        </div>
+                        <p className="text-sm text-dark-400">Pro Users</p>
+                        <p className="text-3xl font-bold text-white mt-1">{subStats.overview.proUsers}</p>
+                        <p className="text-xs text-dark-500 mt-1">{subStats.overview.proPercentage}% of total users</p>
+                      </div>
+
+                      <div className="card bg-gradient-to-br from-gray-900/20 to-dark-800 border-dark-700">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-10 h-10 bg-dark-600 rounded-xl flex items-center justify-center">
+                            <Users className="w-5 h-5 text-dark-300" />
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-dark-600 text-dark-300">FREE</span>
+                        </div>
+                        <p className="text-sm text-dark-400">Free Users</p>
+                        <p className="text-3xl font-bold text-white mt-1">{subStats.overview.freeUsers}</p>
+                        <p className="text-xs text-dark-500 mt-1">{(100 - parseFloat(subStats.overview.proPercentage)).toFixed(1)}% of total users</p>
+                      </div>
+                    </div>
+
+                    {/* Subscription Status Breakdown */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                      <div className="card">
+                        <h2 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
+                          <PieChart className="w-5 h-5 text-primary-400" />
+                          <span>Subscription Status</span>
+                        </h2>
+                        <div className="space-y-4">
+                          {/* Active */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm text-dark-300 flex items-center space-x-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+                                <span>Active</span>
+                              </span>
+                              <span className="text-sm font-semibold text-white">{subStats.overview.activeSubscriptions}</span>
+                            </div>
+                            <div className="w-full bg-dark-700 rounded-full h-2">
+                              <div
+                                className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${subStats.overview.totalUsers > 0 ? (subStats.overview.activeSubscriptions / subStats.overview.totalUsers) * 100 : 0}%` }}
+                              />
+                            </div>
+                          </div>
+                          {/* Canceled */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm text-dark-300 flex items-center space-x-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                                <span>Canceled</span>
+                              </span>
+                              <span className="text-sm font-semibold text-white">{subStats.overview.canceledSubscriptions}</span>
+                            </div>
+                            <div className="w-full bg-dark-700 rounded-full h-2">
+                              <div
+                                className="bg-red-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${subStats.overview.totalUsers > 0 ? (subStats.overview.canceledSubscriptions / subStats.overview.totalUsers) * 100 : 0}%` }}
+                              />
+                            </div>
+                          </div>
+                          {/* Past Due */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm text-dark-300 flex items-center space-x-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                                <span>Past Due</span>
+                              </span>
+                              <span className="text-sm font-semibold text-white">{subStats.overview.pastDueSubscriptions}</span>
+                            </div>
+                            <div className="w-full bg-dark-700 rounded-full h-2">
+                              <div
+                                className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${subStats.overview.totalUsers > 0 ? (subStats.overview.pastDueSubscriptions / subStats.overview.totalUsers) * 100 : 0}%` }}
+                              />
+                            </div>
+                          </div>
+                          {/* Free (no subscription) */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm text-dark-300 flex items-center space-x-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-dark-400"></span>
+                                <span>Free (No Subscription)</span>
+                              </span>
+                              <span className="text-sm font-semibold text-white">{subStats.overview.freeUsers}</span>
+                            </div>
+                            <div className="w-full bg-dark-700 rounded-full h-2">
+                              <div
+                                className="bg-dark-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${subStats.overview.totalUsers > 0 ? (subStats.overview.freeUsers / subStats.overview.totalUsers) * 100 : 0}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Summary badges */}
+                        <div className="mt-6 pt-4 border-t border-dark-700 grid grid-cols-2 gap-3">
+                          <div className="bg-dark-700/50 rounded-lg p-3 text-center">
+                            <p className="text-xs text-dark-400">New Pro (this month)</p>
+                            <p className="text-xl font-bold text-amber-400 mt-1">{subStats.activity.newProThisMonth}</p>
+                          </div>
+                          <div className="bg-dark-700/50 rounded-lg p-3 text-center">
+                            <p className="text-xs text-dark-400">New Free (this month)</p>
+                            <p className="text-xl font-bold text-dark-300 mt-1">{subStats.activity.newFreeThisMonth}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Revenue Chart */}
+                      <div className="card">
+                        <h2 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
+                          <BarChart3 className="w-5 h-5 text-emerald-400" />
+                          <span>Revenue Trend (12 months)</span>
+                        </h2>
+                        {subStats.revenue.monthlyChart.length > 0 ? (
+                          <div className="flex items-end space-x-1.5 h-44">
+                            {subStats.revenue.monthlyChart.map((m, i) => {
+                              const max = Math.max(...subStats.revenue.monthlyChart.map((s) => s.total), 1);
+                              const height = (m.total / max) * 100;
+                              const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                              return (
+                                <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+                                  <div className="relative">
+                                    <span className="text-[10px] text-dark-400 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-dark-700 px-1.5 py-0.5 rounded">
+                                      ${m.total.toFixed(0)}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className="w-full bg-gradient-to-t from-emerald-600/60 to-emerald-400/40 rounded-t-md min-h-[4px] transition-all duration-500 hover:from-emerald-600/80 hover:to-emerald-400/60"
+                                    style={{ height: `${Math.max(height, 3)}%` }}
+                                  />
+                                  <span className="text-[10px] text-dark-500">
+                                    {monthNames[m._id.month - 1]}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-44 text-dark-500">
+                            <p>No revenue data yet</p>
+                          </div>
+                        )}
+
+                        {/* Last month comparison */}
+                        <div className="mt-6 pt-4 border-t border-dark-700 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-dark-400">Last Month Revenue</p>
+                            <p className="text-lg font-bold text-white">${subStats.revenue.lastMonthRevenue.toFixed(2)}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-dark-400">Growth</p>
+                            <p className={`text-lg font-bold flex items-center ${
+                              parseFloat(subStats.revenue.revenueGrowth) >= 0 ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                              {parseFloat(subStats.revenue.revenueGrowth) >= 0 ? (
+                                <TrendingUp className="w-4 h-4 mr-1" />
+                              ) : (
+                                <TrendingDown className="w-4 h-4 mr-1" />
+                              )}
+                              {subStats.revenue.revenueGrowth}%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recent Transactions */}
+                    <div className="card">
+                      <h2 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
+                        <Zap className="w-5 h-5 text-amber-400" />
+                        <span>Recent Transactions</span>
+                        <span className="ml-auto flex items-center space-x-1 text-xs text-dark-500">
+                          <Clock className="w-3 h-3" />
+                          <span>Auto-refreshes every 30s</span>
+                        </span>
+                      </h2>
+                      {subStats.activity.recentTransactions.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-dark-700">
+                                <th className="text-left py-2.5 px-3 text-xs font-medium text-dark-400 uppercase">User</th>
+                                <th className="text-left py-2.5 px-3 text-xs font-medium text-dark-400 uppercase">Event</th>
+                                <th className="text-left py-2.5 px-3 text-xs font-medium text-dark-400 uppercase">Amount</th>
+                                <th className="text-left py-2.5 px-3 text-xs font-medium text-dark-400 uppercase">Date</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-dark-700/50">
+                              {subStats.activity.recentTransactions.map((tx) => (
+                                <tr key={tx._id} className="hover:bg-dark-800/50 transition-colors">
+                                  <td className="py-2.5 px-3">
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium text-white truncate">{tx.userId?.name || 'Deleted User'}</p>
+                                      <p className="text-xs text-dark-500 truncate">{tx.userId?.email || '-'}</p>
+                                    </div>
+                                  </td>
+                                  <td className="py-2.5 px-3">
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      tx.event === 'subscribed' || tx.event === 'renewed' ? 'bg-green-500/20 text-green-400' :
+                                      tx.event === 'canceled' || tx.event === 'expired' ? 'bg-red-500/20 text-red-400' :
+                                      'bg-amber-500/20 text-amber-400'
+                                    }`}>
+                                      {tx.event}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 px-3">
+                                    <span className="text-sm font-semibold text-emerald-400">
+                                      ${tx.amount?.toFixed(2) || '0.00'} <span className="text-[10px] text-dark-500 uppercase">{tx.currency}</span>
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 px-3 text-sm text-dark-400">
+                                    {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-dark-400">
+                          <DollarSign className="w-10 h-10 mx-auto mb-3 text-dark-600" />
+                          <p>No transactions yet</p>
+                        </div>
+                      )}
                     </div>
                   </>
                 ) : null}

@@ -22,7 +22,7 @@ export const templates: Record<string, TemplateInfo> = {
   modern: {
     id: 'modern',
     name: 'Modern',
-    description: 'A clean, modern template with emojis and professional formatting',
+    description: 'A clean, modern template with professional formatting',
     plan: 'free',
     generator: modernTemplate,
   },

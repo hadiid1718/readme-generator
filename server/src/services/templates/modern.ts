@@ -1,6 +1,6 @@
 /**
  * README Template: Modern
- * A clean, modern template with emojis and professional formatting
+ * A clean, modern template with professional formatting
  * Available on: Free plan
  */
 import { ReadmeInput } from '../../utils/validation';
@@ -24,14 +24,14 @@ ${input.description}
 
 ${badges.join(' ')}
 
-${input.liveDemo ? `[**🌐 Live Demo**](${input.liveDemo})` : ''} ${input.githubRepo ? `${input.liveDemo ? ' · ' : ''}[**📦 Repository**](${input.githubRepo})` : ''}
+${input.liveDemo ? `[**Live Demo**](${input.liveDemo})` : ''} ${input.githubRepo ? `${input.liveDemo ? ' · ' : ''}[**Repository**](${input.githubRepo})` : ''}
 
 </div>
 
 ---`);
 
   // ============ Table of Contents ============
-  const toc: string[] = ['## 📋 Table of Contents\n'];
+  const toc: string[] = ['## Table of Contents\n'];
   toc.push('- [About](#-about)');
   toc.push('- [Tech Stack](#-tech-stack)');
   toc.push('- [Features](#-features)');
@@ -51,20 +51,20 @@ ${input.liveDemo ? `[**🌐 Live Demo**](${input.liveDemo})` : ''} ${input.githu
   sections.push(toc.join('\n'));
 
   // ============ About ============
-  sections.push(`## 📖 About
+  sections.push(`## About
 
 ${input.description}`);
 
   // ============ Tech Stack ============
-  sections.push(`## 🛠️ Tech Stack
+  sections.push(`## Tech Stack
 
 ${techBadges}`);
 
   // ============ Features ============
   const featuresList = input.features
-    .map((f) => `- ✅ ${f}`)
+    .map((f) => `- ${f}`)
     .join('\n');
-  sections.push(`## ✨ Features
+  sections.push(`## Features
 
 ${featuresList}`);
 
@@ -74,7 +74,7 @@ ${featuresList}`);
       .map((step, index) => `${index + 1}. ${step}`)
       .join('\n');
 
-    sections.push(`## 🚀 Getting Started
+    sections.push(`## Getting Started
 
 ### Prerequisites
 
@@ -96,14 +96,14 @@ ${installSteps}`);
 
   // ============ Usage ============
   if (input.usage) {
-    sections.push(`## 💡 Usage
+    sections.push(`## Usage
 
 ${input.usage}`);
   }
 
   // ============ API Documentation ============
   if (input.apiDocs) {
-    sections.push(`## 📡 API Documentation
+    sections.push(`## API Documentation
 
 ${input.apiDocs}`);
   }
@@ -117,7 +117,7 @@ ${input.apiDocs}`);
       )
       .join('\n\n');
 
-    sections.push(`## 📸 Screenshots
+    sections.push(`## Screenshots
 
 <div align="center">
 
@@ -136,7 +136,7 @@ ${section.content}`);
   }
 
   // ============ Contributing ============
-  sections.push(`## 🤝 Contributing
+  sections.push(`## Contributing
 
 Contributions are welcome! Here's how you can help:
 
@@ -149,12 +149,12 @@ Contributions are welcome! Here's how you can help:
 Please make sure to update tests as appropriate and follow the existing code style.`);
 
   // ============ License ============
-  sections.push(`## 📄 License
+  sections.push(`## License
 
 This project is licensed under the **${input.license}** License. See the [LICENSE](LICENSE) file for details.`);
 
   // ============ Contact / Author ============
-  const contactLines: string[] = [`## 👤 Contact`];
+  const contactLines: string[] = [`## Contact`];
   contactLines.push(`\n**${input.authorName}**\n`);
   if (input.authorGithub) contactLines.push(`- GitHub: [@${input.authorGithub}](https://github.com/${input.authorGithub})`);
   if (input.authorEmail) contactLines.push(`- Email: [${input.authorEmail}](mailto:${input.authorEmail})`);
@@ -166,9 +166,9 @@ This project is licensed under the **${input.license}** License. See the [LICENS
 
 <div align="center">
 
-**⭐ If you found this project helpful, please give it a star! ⭐**
+**If you found this project helpful, please give it a star!**
 
-${input.githubRepo ? `[⬆ Back to Top](#${input.projectName.toLowerCase().replace(/\s+/g, '-')})` : ''}
+${input.githubRepo ? `[Back to Top](#${input.projectName.toLowerCase().replace(/\s+/g, '-')})` : ''}
 
 </div>`);
 

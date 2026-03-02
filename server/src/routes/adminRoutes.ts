@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { protect, requireAdmin } from '../middleware/auth';
 import {
   getDashboardStats,
+  getSubscriptionStats,
   getAllUsers,
   getUserById,
   updateUser,
@@ -19,6 +20,9 @@ router.use(protect, requireAdmin);
 
 // Dashboard stats
 router.get('/stats', getDashboardStats);
+
+// Subscription & revenue analytics
+router.get('/subscription-stats', getSubscriptionStats);
 
 // User management
 router.get('/users', getAllUsers);
