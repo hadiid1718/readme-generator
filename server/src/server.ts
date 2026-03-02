@@ -17,14 +17,14 @@ const seedAdmin = async (): Promise<void> => {
     const adminExists = await User.findOne({ role: 'admin' });
     if (!adminExists) {
       await User.create({
-        name: 'Admin',
-        email: 'admin@readmepro.com',
-        password: 'Admin@123',
+        name: config.admin.name,
+        email: config.admin.email,
+        password: config.admin.password,
         role: 'admin',
         plan: 'pro',
         isEmailVerified: true,
       });
-      console.log('[OK] Default admin created: admin@readmepro.com / Admin@123');
+      console.log(`[OK] Default admin created: ${config.admin.email}`);
     }
   } catch (error) {
     console.error('[WARN] Failed to seed admin:', error);

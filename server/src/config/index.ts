@@ -34,6 +34,11 @@ interface Config {
     pass: string;
     from: string;
   };
+  admin: {
+    name: string;
+    email: string;
+    password: string;
+  };
   clientUrl: string;
 }
 
@@ -63,6 +68,11 @@ const config: Config = {
     user: process.env.EMAIL_USER || '',
     pass: process.env.EMAIL_PASS || '',
     from: process.env.EMAIL_FROM || 'README Generator Pro <noreply@readmepro.com>',
+  },
+  admin: {
+    name: process.env.ADMIN_NAME || 'Admin',
+    email: process.env.ADMIN_EMAIL || 'admin@readmepro.com',
+    password: process.env.ADMIN_PASSWORD || 'Admin@123',
   },
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
 };
