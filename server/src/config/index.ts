@@ -1,0 +1,70 @@
+/**
+ * Server Configuration
+ * Loads environment variables and exports typed config object
+ */
+import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
+
+interface Config {
+  nodeEnv: string;
+  port: number;
+  mongodbUri: string;
+  jwt: {
+    secret: string;
+    expiresIn: string;
+    cookieExpiresIn: number;
+  };
+  google: {
+    clientId: string;
+    clientSecret: string;
+    callbackUrl: string;
+  };
+  stripe: {
+    secretKey: string;
+    webhookSecret: string;
+    proPriceId: string;
+  };
+  email: {
+    host: string;
+    port: number;
+    secure: boolean;
+    user: string;
+    pass: string;
+    from: string;
+  };
+  clientUrl: string;
+}
+
+const config: Config = {
+  nodeEnv: process.env.NODE_ENV || 'development',
+  port: parseInt(process.env.PORT || '5000', 10),
+  mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/readme-generator-pro',
+  jwt: {
+    secret: process.env.JWT_SECRET || 'fallback-secret-change-me',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    cookieExpiresIn: parseInt(process.env.JWT_COOKIE_EXPIRES_IN || '7', 10),
+  },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
+  },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY || '',
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    proPriceId: process.env.STRIPE_PRO_PRICE_ID || '',
+  },
+  email: {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT || '587', 10),
+    secure: process.env.EMAIL_SECURE === 'true',
+    user: process.env.EMAIL_USER || '',
+    pass: process.env.EMAIL_PASS || '',
+    from: process.env.EMAIL_FROM || 'README Generator Pro <noreply@readmepro.com>',
+  },
+  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+};
+
+export default config;
