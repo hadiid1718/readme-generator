@@ -16,6 +16,9 @@ import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
 // Pages
 import LandingPage from './pages/LandingPage';
 import PricingPage from './pages/PricingPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import TermOfPolicyPage from './pages/TermOfPolicyPage';
+import RefundPolicyPage from './pages/RefundPolicyPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -64,6 +67,9 @@ const AppLayout = () => {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+            <Route path="/term-of-policy" element={<TermOfPolicyPage />} />
+            <Route path="/refund-policy" element={<RefundPolicyPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/generator" element={<GeneratorPage />} />
