@@ -3,9 +3,31 @@
  * Loads environment variables and exports typed config object
  */
 import dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 
-dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
+const currentNodeEnv = (process.env.NODE_ENV || 'development').toLowerCase();
+const environmentFileName = `.env.${currentNodeEnv}`;
+
+const envFileCandidates = [
+  // Repo root (works for both ts-node and compiled dist)
+  path.resolve(__dirname, '..', '..', '..', environmentFileName),
+  // Current working directory (useful in some deploy setups)
+  path.resolve(process.cwd(), environmentFileName),
+  // Server directory fallback
+  path.resolve(__dirname, '..', '..', environmentFileName),
+  // Legacy .env fallback
+  path.resolve(__dirname, '..', '..', '.env'),
+  path.resolve(process.cwd(), '.env'),
+];
+
+const envFilePath = envFileCandidates.find((candidate) => fs.existsSync(candidate));
+
+if (envFilePath) {
+  dotenv.config({ path: envFilePath });
+} else {
+  dotenv.config();
+}
 
 interface Config {
   nodeEnv: string;
