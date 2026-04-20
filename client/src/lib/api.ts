@@ -91,7 +91,7 @@ export const paymentAPI = {
 
   getStatus: () => api.get('/payments/status'),
 
-  getHistory: (page = 1, limit = 20) =>
+  getHistory: (page = 1, limit = 10) =>
     api.get(`/payments/history?page=${page}&limit=${limit}`),
 };
 
@@ -101,7 +101,9 @@ export const adminAPI = {
 
   getSubscriptionStats: () => api.get('/admin/subscription-stats'),
 
-  getUsers: (page = 1, limit = 20, search = '', plan = '', role = '') => {
+  getHealth: () => api.get('/admin/health'),
+
+  getUsers: (page = 1, limit = 10, search = '', plan = '', role = '') => {
     const params = new URLSearchParams();
     params.set('page', String(page));
     params.set('limit', String(limit));

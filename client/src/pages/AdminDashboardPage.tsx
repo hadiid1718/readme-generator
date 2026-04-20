@@ -92,7 +92,35 @@ interface SubscriptionStats {
   _fetchedAt: string;
 }
 
-type AdminSection = 'overview' | 'users' | 'subscriptions';
+interface HealthModule {
+  status: string;
+  metrics: Record<string, number | string>;
+}
+
+interface SystemHealthData {
+  timestamp: string;
+  system: {
+    nodeEnv: string;
+    uptimeSeconds: number;
+    database: {
+      state: string;
+      status: string;
+    };
+    memory: {
+      rssMb: number;
+      heapUsedMb: number;
+      heapTotalMb: number;
+    };
+  };
+  modules: {
+    auth: HealthModule;
+    readmes: HealthModule;
+    payments: HealthModule;
+    admin: HealthModule;
+  };
+}
+
+type AdminSection = 'overview' | 'users' | 'subscriptions' | 'health';
 
 // ============ Main Admin Dashboard ============
 const AdminDashboardPage = () => {
@@ -110,7 +138,7 @@ const AdminDashboardPage = () => {
   // Users list
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [usersPagination, setUsersPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+  const [usersPagination, setUsersPagination] = useState({ page: 1, limit: 10, total: 0, pages: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [planFilter, setPlanFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -127,10 +155,16 @@ const AdminDashboardPage = () => {
   // Subscription stats
   const [subStats, setSubStats] = useState<SubscriptionStats | null>(null);
   const [subStatsLoading, setSubStatsLoading] = useState(false);
+
+  // Health monitor
+  const [healthData, setHealthData] = useState<SystemHealthData | null>(null);
+  const [healthLoading, setHealthLoading] = useState(false);
+
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  // Real-time polling interval (30 seconds)
+  // Real-time polling intervals
   const POLL_INTERVAL = 30_000;
+  const HEALTH_POLL_INTERVAL = 15_000;
 
   useEffect(() => {
     loadStats();
@@ -151,6 +185,17 @@ const AdminDashboardPage = () => {
         loadSubStats(true);
       }, POLL_INTERVAL);
       return () => clearInterval(subInterval);
+    }
+  }, [activeSection]);
+
+  // Real-time polling for module health
+  useEffect(() => {
+    if (activeSection === 'health') {
+      loadHealth();
+      const healthInterval = setInterval(() => {
+        loadHealth(true);
+      }, HEALTH_POLL_INTERVAL);
+      return () => clearInterval(healthInterval);
     }
   }, [activeSection]);
 
@@ -181,10 +226,23 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const loadHealth = async (silent = false) => {
+    if (!silent) setHealthLoading(true);
+    try {
+      const res = await adminAPI.getHealth();
+      setHealthData(res.data.data);
+      setLastRefresh(new Date());
+    } catch {
+      if (!silent) toast.error('Failed to load system health');
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
   const loadUsers = async (page = 1) => {
     setUsersLoading(true);
     try {
-      const res = await adminAPI.getUsers(page, 20, searchQuery, planFilter, roleFilter);
+      const res = await adminAPI.getUsers(page, 10, searchQuery, planFilter, roleFilter);
       setUsers(res.data.data.users);
       setUsersPagination(res.data.data.pagination);
     } catch {
@@ -259,14 +317,27 @@ const AdminDashboardPage = () => {
     navigate('/admin/login');
   };
 
+  const formatUptime = (seconds: number): string => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs}h ${mins}m ${secs}s`;
+  };
+
+  const metricLabel = (value: string): string =>
+    value
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (s) => s.toUpperCase());
+
   const sidebarItems: { key: AdminSection; label: string; icon: React.ReactNode }[] = [
     { key: 'overview', label: 'Overview', icon: <BarChart3 className="w-5 h-5" /> },
     { key: 'subscriptions', label: 'Subscriptions', icon: <CreditCard className="w-5 h-5" /> },
+    { key: 'health', label: 'Health Monitor', icon: <Activity className="w-5 h-5" /> },
     { key: 'users', label: 'Users', icon: <Users className="w-5 h-5" /> },
   ];
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen bg-dark-900">
       <div className="flex">
         {/* Mobile overlay */}
         {sidebarOpen && (
@@ -275,7 +346,7 @@ const AdminDashboardPage = () => {
 
         {/* ===== Sidebar ===== */}
         <aside
-          className={`fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] w-64 bg-dark-800 border-r border-dark-700 flex flex-col transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${
+          className={`fixed top-0 left-0 z-50 h-screen w-64 bg-dark-800 border-r border-dark-700 flex flex-col transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -327,7 +398,7 @@ const AdminDashboardPage = () => {
         </aside>
 
         {/* ===== Main Content ===== */}
-        <main className="flex-1 min-h-[calc(100vh-4rem)] bg-dark-900">
+        <main className="flex-1 min-h-screen bg-dark-900">
           {/* Mobile header */}
           <div className="lg:hidden flex items-center justify-between p-4 border-b border-dark-700">
             <button onClick={() => setSidebarOpen(true)} className="p-2 text-dark-300 hover:text-white hover:bg-dark-700 rounded-lg">
@@ -765,6 +836,99 @@ const AdminDashboardPage = () => {
                     </div>
                   </>
                 ) : null}
+              </div>
+            )}
+
+            {/* ========== HEALTH MONITOR ========== */}
+            {activeSection === 'health' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white">System Health Monitor</h1>
+                    <p className="text-dark-400 mt-1 flex items-center space-x-2">
+                      <Activity className="w-3.5 h-3.5 text-green-400 animate-pulse" />
+                      <span>Real-time module health · Last updated {lastRefresh.toLocaleTimeString()}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => loadHealth()}
+                    className="btn-secondary text-sm flex items-center space-x-2"
+                    disabled={healthLoading}
+                  >
+                    <RefreshCw className={`w-4 h-4 ${healthLoading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+                </div>
+
+                {healthLoading && !healthData ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                  </div>
+                ) : healthData ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                      <div className="card">
+                        <p className="text-sm text-dark-400">Environment</p>
+                        <p className="text-2xl font-bold text-white mt-1 uppercase">{healthData.system.nodeEnv}</p>
+                      </div>
+                      <div className="card">
+                        <p className="text-sm text-dark-400">Uptime</p>
+                        <p className="text-2xl font-bold text-white mt-1">{formatUptime(healthData.system.uptimeSeconds)}</p>
+                      </div>
+                      <div className="card">
+                        <p className="text-sm text-dark-400">Database</p>
+                        <p className={`text-2xl font-bold mt-1 ${healthData.system.database.status === 'healthy' ? 'text-green-400' : 'text-amber-400'}`}>
+                          {healthData.system.database.state}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="card mb-6">
+                      <h2 className="text-lg font-bold text-white mb-4">Process Memory</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div className="bg-dark-700/50 rounded-lg p-3">
+                          <p className="text-dark-400">RSS</p>
+                          <p className="text-white font-semibold mt-1">{healthData.system.memory.rssMb} MB</p>
+                        </div>
+                        <div className="bg-dark-700/50 rounded-lg p-3">
+                          <p className="text-dark-400">Heap Used</p>
+                          <p className="text-white font-semibold mt-1">{healthData.system.memory.heapUsedMb} MB</p>
+                        </div>
+                        <div className="bg-dark-700/50 rounded-lg p-3">
+                          <p className="text-dark-400">Heap Total</p>
+                          <p className="text-white font-semibold mt-1">{healthData.system.memory.heapTotalMb} MB</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {Object.entries(healthData.modules).map(([moduleName, moduleData]) => (
+                        <div key={moduleName} className="card">
+                          <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-bold text-white capitalize">{moduleName} Module</h2>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${moduleData.status === 'healthy' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                              {moduleData.status}
+                            </span>
+                          </div>
+
+                          <div className="space-y-2">
+                            {Object.entries(moduleData.metrics).map(([key, value]) => (
+                              <div key={key} className="flex items-center justify-between py-2 px-3 rounded-lg bg-dark-700/50">
+                                <span className="text-sm text-dark-300">{metricLabel(key)}</span>
+                                <span className="text-sm font-semibold text-white">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="card text-center py-12 text-dark-400">
+                    <Activity className="w-10 h-10 mx-auto mb-3 text-dark-600" />
+                    <p>No health data available</p>
+                  </div>
+                )}
               </div>
             )}
 

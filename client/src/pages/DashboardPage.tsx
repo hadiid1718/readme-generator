@@ -56,7 +56,7 @@ type SidebarSection = 'overview' | 'readmes' | 'subscription' | 'profile';
 
 // ============ Main Dashboard ============
 const DashboardPage = () => {
-  const { user } = useAuthStore();
+  const { user, loadUser } = useAuthStore();
   const navigate = useNavigate();
 
   // Sidebar state
@@ -76,11 +76,12 @@ const DashboardPage = () => {
 
   useEffect(() => {
     loadReadmes();
+    loadUser();
 
     // Real-time polling for user dashboard stats (every 60 seconds)
     const pollInterval = setInterval(() => {
       loadReadmes();
-      // Silently re-fetch auth data
+      loadUser();
     }, 60_000);
 
     return () => clearInterval(pollInterval);
@@ -101,7 +102,7 @@ const DashboardPage = () => {
   const loadSubHistory = async (page = 1) => {
     setSubLoading(true);
     try {
-      const response = await paymentAPI.getHistory(page);
+      const response = await paymentAPI.getHistory(page, 10);
       setSubHistory(response.data.data.history);
       setSubPagination(response.data.data.pagination);
     } catch {
@@ -371,7 +372,7 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {readmes.slice(0, 5).map((readme) => (
+                      {readmes.map((readme) => (
                         <div key={readme._id} className="card-hover flex items-center justify-between gap-3">
                           <div className="flex items-center space-x-3 min-w-0">
                             <div className="w-9 h-9 bg-primary-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -390,6 +391,19 @@ const DashboardPage = () => {
                           </button>
                         </div>
                       ))}
+                      {pagination.pages > 1 && (
+                        <div className="flex justify-center gap-2 mt-4">
+                          {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => loadReadmes(page)}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${page === pagination.page ? 'bg-primary-600 text-white' : 'bg-dark-700 text-dark-300 hover:bg-dark-600'}`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

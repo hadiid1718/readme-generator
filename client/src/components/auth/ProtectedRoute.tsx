@@ -11,7 +11,7 @@ interface Props {
 }
 
 const ProtectedRoute = ({ children }: Props) => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
   const location = useLocation();
 
   if (isLoading) {
@@ -24,6 +24,10 @@ const ProtectedRoute = ({ children }: Props) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;

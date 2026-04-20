@@ -3,7 +3,7 @@
  * Root component with routing, auth initialization, and layout
  */
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './stores/authStore';
 
@@ -48,53 +48,53 @@ const OAuthHandler = () => {
 };
 
 /**
- * Main App Layout
+ * Route-aware shell
  */
-const AppLayout = () => {
+const AppShell = () => {
   const { loadUser } = useAuthStore();
+  const location = useLocation();
+  const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
 
   useEffect(() => {
     loadUser();
   }, []);
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <OAuthHandler />
+    <div className="min-h-screen flex flex-col">
+      {!isAdminRoute && <Navbar />}
+      <OAuthHandler />
 
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-            <Route path="/term-of-policy" element={<TermOfPolicyPage />} />
-            <Route path="/refund-policy" element={<RefundPolicyPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/generator" element={<GeneratorPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route
-              path="/admin"
-              element={
-                <AdminProtectedRoute>
-                  <AdminDashboardPage />
-                </AdminProtectedRoute>
-              }
-            />
-          </Routes>
-        </main>
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/term-of-policy" element={<TermOfPolicyPage />} />
+          <Route path="/refund-policy" element={<RefundPolicyPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/generator" element={<GeneratorPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboardPage />
+              </AdminProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
 
-        <Footer />
-      </div>
+      {!isAdminRoute && <Footer />}
 
       {/* Toast notifications */}
       <Toaster
@@ -120,8 +120,17 @@ const AppLayout = () => {
           },
         }}
       />
-    </BrowserRouter>
+    </div>
   );
 };
+
+/**
+ * Main App Layout
+ */
+const AppLayout = () => (
+  <BrowserRouter>
+    <AppShell />
+  </BrowserRouter>
+);
 
 export default AppLayout;
