@@ -4,7 +4,12 @@
  */
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const DEFAULT_PROD_API_URL = 'https://readme-generator-aylm.onrender.com/api';
+
+export const API_BASE_URL = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? DEFAULT_PROD_API_URL : '/api')
+).replace(/\/$/, '');
 
 const api = axios.create({
   baseURL: API_BASE_URL,

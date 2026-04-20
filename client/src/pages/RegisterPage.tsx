@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, FileText, Mail, Lock, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
+import { API_BASE_URL } from '../lib/api';
 
 const RegisterPage = () => {
   const [name, setName] = useState('');
@@ -31,7 +32,7 @@ const RegisterPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = '/api/auth/google';
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
