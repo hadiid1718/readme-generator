@@ -3,10 +3,12 @@
  * Handles admin dashboard operations: user management, stats, etc.
  */
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { AppError, catchAsync } from '../utils/AppError';
 import User from '../models/User';
 import Readme from '../models/Readme';
 import SubscriptionHistory from '../models/SubscriptionHistory';
+import config from '../config';
 
 /**
  * Get dashboard stats overview
@@ -78,7 +80,8 @@ export const getDashboardStats = catchAsync(
 export const getAllUsers = catchAsync(
   async (req: Request, res: Response, _next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const requestedLimit = parseInt(req.query.limit as string) || 10;
+    const limit = Math.min(Math.max(requestedLimit, 1), 10);
     const search = (req.query.search as string) || '';
     const planFilter = req.query.plan as string;
     const roleFilter = req.query.role as string;
@@ -275,7 +278,7 @@ export const getSubscriptionStats = catchAsync(
       // Recent transactions
       SubscriptionHistory.find({ amount: { $gt: 0 } })
         .sort({ createdAt: -1 })
-        .limit(10)
+        .limit(5)
         .populate('userId', 'name email plan'),
       // New pro users this month
       User.countDocuments({ plan: 'pro', createdAt: { $gte: startOfMonth } }),
@@ -315,6 +318,109 @@ export const getSubscriptionStats = catchAsync(
           recentTransactions,
         },
         _fetchedAt: new Date().toISOString(),
+      },
+    });
+  }
+);
+
+/**
+ * Get real-time module health for admin panel
+ * GET /api/admin/health
+ */
+export const getSystemHealth = catchAsync(
+  async (_req: Request, res: Response, _next: NextFunction) => {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const dbStateMap: Record<number, string> = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting',
+    };
+    const dbReadyState = mongoose.connection.readyState;
+    const dbState = dbStateMap[dbReadyState] || 'unknown';
+
+    const [
+      totalUsers,
+      totalAdmins,
+      newUsers24h,
+      totalReadmes,
+      newReadmes24h,
+      activeSubscriptions,
+      pastDueSubscriptions,
+      recentPaymentEvents,
+      paymentFailedEvents,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: 'admin' }),
+      User.countDocuments({ createdAt: { $gte: oneDayAgo } }),
+      Readme.countDocuments(),
+      Readme.countDocuments({ createdAt: { $gte: oneDayAgo } }),
+      User.countDocuments({ subscriptionStatus: 'active' }),
+      User.countDocuments({ subscriptionStatus: 'past_due' }),
+      SubscriptionHistory.countDocuments({
+        event: { $in: ['subscribed', 'renewed', 'reactivated'] },
+        createdAt: { $gte: oneDayAgo },
+      }),
+      SubscriptionHistory.countDocuments({
+        event: 'payment_failed',
+        createdAt: { $gte: oneDayAgo },
+      }),
+    ]);
+
+    const memory = process.memoryUsage();
+    const toMb = (bytes: number) => Number((bytes / 1024 / 1024).toFixed(2));
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        timestamp: now.toISOString(),
+        system: {
+          nodeEnv: config.nodeEnv,
+          uptimeSeconds: Math.floor(process.uptime()),
+          database: {
+            state: dbState,
+            status: dbReadyState === 1 ? 'healthy' : 'degraded',
+          },
+          memory: {
+            rssMb: toMb(memory.rss),
+            heapUsedMb: toMb(memory.heapUsed),
+            heapTotalMb: toMb(memory.heapTotal),
+          },
+        },
+        modules: {
+          auth: {
+            status: 'healthy',
+            metrics: {
+              totalUsers,
+              totalAdmins,
+              newUsers24h,
+            },
+          },
+          readmes: {
+            status: 'healthy',
+            metrics: {
+              totalReadmes,
+              newReadmes24h,
+            },
+          },
+          payments: {
+            status: config.stripe.secretKey ? 'healthy' : 'degraded',
+            metrics: {
+              activeSubscriptions,
+              pastDueSubscriptions,
+              recentPaymentEvents,
+              paymentFailedEvents,
+            },
+          },
+          admin: {
+            status: totalAdmins > 0 ? 'healthy' : 'degraded',
+            metrics: {
+              totalAdmins,
+            },
+          },
+        },
       },
     });
   }

@@ -21,10 +21,22 @@ const seedAdmin = async (): Promise<void> => {
         email: config.admin.email,
         password: config.admin.password,
         role: 'admin',
-        plan: 'pro',
+        plan: 'free',
+        subscriptionStatus: 'none',
         isEmailVerified: true,
       });
       console.log(`[OK] Default admin created: ${config.admin.email}`);
+      return;
+    }
+
+    // Keep admins as system admins (not pro subscribers)
+    if (adminExists.plan !== 'free' || adminExists.subscriptionStatus !== 'none') {
+      adminExists.plan = 'free';
+      adminExists.subscriptionStatus = 'none';
+      adminExists.subscriptionEndDate = undefined;
+      adminExists.stripeSubscriptionId = undefined;
+      await adminExists.save();
+      console.log(`[OK] Admin normalized to system-admin mode: ${adminExists.email}`);
     }
   } catch (error) {
     console.error('[WARN] Failed to seed admin:', error);

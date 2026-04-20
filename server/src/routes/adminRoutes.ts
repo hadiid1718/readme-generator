@@ -7,6 +7,7 @@ import { protect, requireAdmin } from '../middleware/auth';
 import {
   getDashboardStats,
   getSubscriptionStats,
+  getSystemHealth,
   getAllUsers,
   getUserById,
   updateUser,
@@ -23,6 +24,9 @@ router.get('/stats', getDashboardStats);
 
 // Subscription & revenue analytics
 router.get('/subscription-stats', getSubscriptionStats);
+
+// Real-time system/module health
+router.get('/health', getSystemHealth);
 
 // User management
 router.get('/users', getAllUsers);

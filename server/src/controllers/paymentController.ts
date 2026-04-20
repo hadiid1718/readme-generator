@@ -115,7 +115,8 @@ export const getSubscriptionHistory = catchAsync(
     }
 
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const requestedLimit = parseInt(req.query.limit as string) || 10;
+    const limit = Math.min(Math.max(requestedLimit, 1), 10);
     const skip = (page - 1) * limit;
 
     const [history, total] = await Promise.all([
