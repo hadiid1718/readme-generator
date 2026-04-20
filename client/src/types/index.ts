@@ -10,6 +10,8 @@ export interface User {
   avatar: string;
   role: 'user' | 'admin';
   plan: 'free' | 'pro';
+  paddleCustomerId?: string;
+  paddleSubscriptionId?: string;
   subscriptionStatus: 'none' | 'active' | 'canceled' | 'past_due';
   exportsUsedThisMonth: number;
   exportsResetDate: string;
@@ -93,6 +95,8 @@ export interface SubscriptionHistoryItem {
   plan: 'free' | 'pro';
   amount?: number;
   currency?: string;
+  paddleSubscriptionId?: string;
+  paddleTransactionId?: string;
   stripeSubscriptionId?: string;
   periodStart?: string;
   periodEnd?: string;

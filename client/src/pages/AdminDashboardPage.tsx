@@ -1177,8 +1177,8 @@ const AdminDashboardPage = () => {
                   <div className="flex justify-between"><span className="text-dark-400">READMEs Created</span><span className="text-white">{viewingUser.readmeCount}</span></div>
                   <div className="flex justify-between"><span className="text-dark-400">Exports This Month</span><span className="text-white">{viewingUser.user.exportsUsedThisMonth}</span></div>
                   <div className="flex justify-between"><span className="text-dark-400">Joined</span><span className="text-white">{new Date(viewingUser.user.createdAt).toLocaleDateString()}</span></div>
-                  {viewingUser.user.stripeCustomerId && (
-                    <div className="flex justify-between"><span className="text-dark-400">Stripe ID</span><span className="text-white text-xs font-mono">{viewingUser.user.stripeCustomerId}</span></div>
+                  {(viewingUser.user.paddleCustomerId || viewingUser.user.stripeCustomerId) && (
+                    <div className="flex justify-between"><span className="text-dark-400">Paddle Customer ID</span><span className="text-white text-xs font-mono">{viewingUser.user.paddleCustomerId || viewingUser.user.stripeCustomerId}</span></div>
                   )}
                 </div>
 

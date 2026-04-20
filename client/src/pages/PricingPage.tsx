@@ -1,6 +1,6 @@
 /**
  * Pricing Page
- * Displays Free vs Pro plan comparison with Stripe checkout integration
+ * Displays Free vs Pro plan comparison with Paddle checkout integration
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -99,7 +99,7 @@ const PricingPage = () => {
             Simple, Transparent Pricing
           </h1>
           <p className="text-lg text-dark-400 max-w-2xl mx-auto">
-            Start free, upgrade when you need more. No hidden fees, cancel anytime.
+            Start free, upgrade when you need more. No hidden fees, with a 2-day cancellation window.
           </p>
         </div>
 
@@ -194,12 +194,12 @@ const PricingPage = () => {
           <div className="space-y-4">
             {[
               {
-                q: 'Can I cancel anytime?',
-                a: 'Yes! You can cancel your Pro subscription at any time. You will retain Pro access until the end of your billing period.',
+                q: 'Can I cancel my subscription?',
+                a: 'Yes. You can cancel within 2 days of subscribing from your dashboard subscription section.',
               },
               {
                 q: 'What payment methods are accepted?',
-                a: 'We accept all major credit cards through Stripe. Your payment information is securely handled by Stripe.',
+                a: 'We accept major payment methods through Paddle. Payment details are handled securely by Paddle.',
               },
               {
                 q: 'What happens when I reach the free tier limit?',

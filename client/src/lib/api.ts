@@ -89,6 +89,8 @@ export const paymentAPI = {
 
   createPortal: () => api.post('/payments/create-portal'),
 
+  cancelSubscription: () => api.post('/payments/cancel-subscription'),
+
   getStatus: () => api.get('/payments/status'),
 
   getHistory: (page = 1, limit = 10) =>

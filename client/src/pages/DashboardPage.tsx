@@ -73,6 +73,7 @@ const DashboardPage = () => {
   const [subHistory, setSubHistory] = useState<SubscriptionHistoryItem[]>([]);
   const [subLoading, setSubLoading] = useState(false);
   const [subPagination, setSubPagination] = useState({ page: 1, pages: 1, total: 0 });
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
 
   useEffect(() => {
     loadReadmes();
@@ -139,6 +140,24 @@ const DashboardPage = () => {
       window.location.href = response.data.data.url;
     } catch {
       toast.error('Failed to open billing portal');
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm('Cancel your subscription now? You can only cancel within 2 days of subscribing.')) {
+      return;
+    }
+
+    setCancelingSubscription(true);
+    try {
+      await paymentAPI.cancelSubscription();
+      toast.success('Subscription canceled successfully');
+      await loadUser();
+      await loadSubHistory(subPagination.page);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to cancel subscription');
+    } finally {
+      setCancelingSubscription(false);
     }
   };
 
@@ -350,10 +369,22 @@ const DashboardPage = () => {
                 )}
 
                 {user?.plan === 'pro' && (
-                  <div className="mb-8">
+                  <div className="mb-8 flex flex-wrap gap-3">
                     <button onClick={handleManageBilling} className="btn-secondary text-sm">
                       <Settings className="w-4 h-4 inline-block mr-1.5" />Manage Billing
                     </button>
+                    {user?.subscriptionStatus === 'active' && (
+                      <button
+                        onClick={handleCancelSubscription}
+                        disabled={cancelingSubscription}
+                        className="btn-secondary text-sm border-red-500/40 hover:border-red-500 text-red-400"
+                      >
+                        {cancelingSubscription ? (
+                          <Loader2 className="w-4 h-4 animate-spin inline-block mr-1.5" />
+                        ) : null}
+                        Cancel within 2 days
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -488,7 +519,21 @@ const DashboardPage = () => {
                     <p className="text-dark-400 text-sm mt-1">Billing events and invoices</p>
                   </div>
                   {user?.plan === 'pro' && (
-                    <button onClick={handleManageBilling} className="btn-secondary text-sm">Manage Billing</button>
+                    <div className="flex flex-wrap gap-2">
+                      <button onClick={handleManageBilling} className="btn-secondary text-sm">Manage Billing</button>
+                      {user?.subscriptionStatus === 'active' && (
+                        <button
+                          onClick={handleCancelSubscription}
+                          disabled={cancelingSubscription}
+                          className="btn-secondary text-sm border-red-500/40 hover:border-red-500 text-red-400"
+                        >
+                          {cancelingSubscription ? (
+                            <Loader2 className="w-4 h-4 animate-spin inline-block mr-1.5" />
+                          ) : null}
+                          Cancel (2-day window)
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -601,6 +646,18 @@ const DashboardPage = () => {
                   <div className="mt-6 pt-6 border-t border-dark-700 flex flex-wrap gap-3">
                     {user?.plan === 'free' && <Link to="/pricing" className="btn-primary text-sm">Upgrade to Pro</Link>}
                     {user?.plan === 'pro' && <button onClick={handleManageBilling} className="btn-secondary text-sm">Manage Billing</button>}
+                    {user?.plan === 'pro' && user?.subscriptionStatus === 'active' && (
+                      <button
+                        onClick={handleCancelSubscription}
+                        disabled={cancelingSubscription}
+                        className="btn-secondary text-sm border-red-500/40 hover:border-red-500 text-red-400"
+                      >
+                        {cancelingSubscription ? (
+                          <Loader2 className="w-4 h-4 animate-spin inline-block mr-1.5" />
+                        ) : null}
+                        Cancel (2-day window)
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
