@@ -29,6 +29,8 @@ if (envFilePath) {
   dotenv.config();
 }
 
+const normalizeOrigin = (url: string): string => url.replace(/\/+$/, '');
+
 interface Config {
   nodeEnv: string;
   port: number;
@@ -96,7 +98,7 @@ const config: Config = {
     email: process.env.ADMIN_EMAIL || 'admin@readmepro.com',
     password: process.env.ADMIN_PASSWORD || 'Admin@123',
   },
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrl: normalizeOrigin(process.env.CLIENT_URL || 'http://localhost:5173'),
 };
 
 export default config;
