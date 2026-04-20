@@ -127,11 +127,16 @@ cd ../client && npm install
 ### 2. Configure Environment
 
 ```bash
-# Copy the example env file
-cp server/.env.example server/.env
-
-# Edit with your values
+# Edit .env.development for local development
+# Edit .env.production for production deployment values
 ```
+
+Environment handling now supports mode-based files at the repository root:
+
+- `.env.development` for local development
+- `.env.production` for production deployments
+
+The server loads `.env.<NODE_ENV>` automatically (with fallback to `.env`), and the client (Vite) reads environment files from the repository root by mode.
 
 **Required environment variables:**
 
@@ -309,7 +314,7 @@ User clicks "Upgrade"
 2. Connect your GitHub repository
 3. Set the **Root Directory** to `server`
 4. Set **Build Command**: `npm install && npm run build`
-5. Set **Start Command**: `npm start`
+5. Set **Start Command**: `node dist/server.js`
 6. Add environment variables from `.env.example`
 7. Set `CLIENT_URL` to your Vercel frontend URL
 8. Deploy!
