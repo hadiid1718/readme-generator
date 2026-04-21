@@ -63,7 +63,7 @@ if (config.nodeEnv === 'development') {
 }
 
 // ----- Body Parsing -----
-// Note: Stripe webhook needs raw body, so it must be before json() middleware
+// Note: Payment webhook signature validation needs raw body, so it must be before json() middleware
 // The webhook route handles its own body parsing
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));

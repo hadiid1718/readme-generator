@@ -133,7 +133,7 @@ export const getAllUsers = catchAsync(
 export const getUserById = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(req.params.id).select(
-      'name email avatar role plan subscriptionStatus subscriptionEndDate stripeCustomerId stripeSubscriptionId exportsUsedThisMonth exportsResetDate createdAt updatedAt'
+      'name email avatar role plan subscriptionStatus subscriptionEndDate paddleCustomerId paddleSubscriptionId stripeCustomerId stripeSubscriptionId exportsUsedThisMonth exportsResetDate createdAt updatedAt'
     );
 
     if (!user) {
@@ -175,7 +175,7 @@ export const updateUser = catchAsync(
       updateData.plan = plan;
       if (plan === 'free') {
         updateData.subscriptionStatus = 'none';
-        updateData.stripeSubscriptionId = undefined;
+        updateData.paddleSubscriptionId = undefined;
       }
     }
     if (subscriptionStatus && ['none', 'active', 'canceled', 'past_due'].includes(subscriptionStatus)) {
@@ -406,7 +406,7 @@ export const getSystemHealth = catchAsync(
             },
           },
           payments: {
-            status: config.stripe.secretKey ? 'healthy' : 'degraded',
+            status: config.paddle.apiKey ? 'healthy' : 'degraded',
             metrics: {
               activeSubscriptions,
               pastDueSubscriptions,

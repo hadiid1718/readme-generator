@@ -73,6 +73,7 @@ const checkExpiringSubscriptions = async (): Promise<void> => {
       // Downgrade to free
       user.plan = 'free';
       user.subscriptionStatus = 'none' as any;
+      user.paddleSubscriptionId = undefined;
       user.stripeSubscriptionId = undefined;
       await user.save();
 

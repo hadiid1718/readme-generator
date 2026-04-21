@@ -15,6 +15,8 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   isEmailVerified: boolean;
   plan: 'free' | 'pro';
+  paddleCustomerId?: string;
+  paddleSubscriptionId?: string;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus: 'none' | 'active' | 'canceled' | 'past_due';
@@ -72,6 +74,13 @@ const userSchema = new Schema<IUser>(
       enum: ['free', 'pro'],
       default: 'free',
     },
+    paddleCustomerId: {
+      type: String,
+    },
+    paddleSubscriptionId: {
+      type: String,
+    },
+    // Legacy Stripe fields kept for backward compatibility with existing data.
     stripeCustomerId: {
       type: String,
     },
@@ -106,6 +115,7 @@ const userSchema = new Schema<IUser>(
 
 // ----- Indexes -----
 // Note: email already has unique: true which creates an index automatically
+userSchema.index({ paddleCustomerId: 1 });
 userSchema.index({ stripeCustomerId: 1 });
 
 // ----- Pre-save Hook: Hash password -----

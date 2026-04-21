@@ -34,6 +34,7 @@ const seedAdmin = async (): Promise<void> => {
       adminExists.plan = 'free';
       adminExists.subscriptionStatus = 'none';
       adminExists.subscriptionEndDate = undefined;
+      adminExists.paddleSubscriptionId = undefined;
       adminExists.stripeSubscriptionId = undefined;
       await adminExists.save();
       console.log(`[OK] Admin normalized to system-admin mode: ${adminExists.email}`);

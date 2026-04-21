@@ -45,10 +45,13 @@ interface Config {
     clientSecret: string;
     callbackUrl: string;
   };
-  stripe: {
-    secretKey: string;
+  paddle: {
+    apiKey: string;
     webhookSecret: string;
     proPriceId: string;
+    checkoutUrl: string;
+    customerPortalUrl: string;
+    baseUrl: string;
   };
   email: {
     host: string;
@@ -80,10 +83,13 @@ const config: Config = {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     callbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
   },
-  stripe: {
-    secretKey: process.env.STRIPE_SECRET_KEY || '',
-    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
-    proPriceId: process.env.STRIPE_PRO_PRICE_ID || '',
+  paddle: {
+    apiKey: process.env.PADDLE_API_KEY || '',
+    webhookSecret: process.env.PADDLE_WEBHOOK_SECRET || '',
+    proPriceId: process.env.PADDLE_PRO_PRICE_ID || '',
+    checkoutUrl: process.env.PADDLE_CHECKOUT_URL || '',
+    customerPortalUrl: process.env.PADDLE_CUSTOMER_PORTAL_URL || '',
+    baseUrl: process.env.PADDLE_API_BASE_URL || 'https://api.paddle.com',
   },
   email: {
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',

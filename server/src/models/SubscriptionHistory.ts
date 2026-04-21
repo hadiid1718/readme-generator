@@ -10,6 +10,8 @@ export interface ISubscriptionHistory extends Document {
   plan: 'free' | 'pro';
   amount?: number;
   currency?: string;
+  paddleSubscriptionId?: string;
+  paddleTransactionId?: string;
   stripeSubscriptionId?: string;
   stripeInvoiceId?: string;
   periodStart?: Date;
@@ -43,6 +45,13 @@ const subscriptionHistorySchema = new Schema<ISubscriptionHistory>(
       type: String,
       default: 'usd',
     },
+    paddleSubscriptionId: {
+      type: String,
+    },
+    paddleTransactionId: {
+      type: String,
+    },
+    // Legacy Stripe fields kept for backward compatibility with existing records.
     stripeSubscriptionId: {
       type: String,
     },

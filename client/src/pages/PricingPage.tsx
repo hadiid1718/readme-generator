@@ -33,7 +33,7 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '$4',
+    price: '$10',
     period: '/month',
     description: 'For serious developers & teams',
     icon: <Sparkles className="w-6 h-6" />,
