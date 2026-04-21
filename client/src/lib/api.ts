@@ -55,6 +55,9 @@ export const authAPI = {
   login: (data: { email: string; password: string }) =>
     api.post('/auth/login', data),
 
+  adminLogin: (data: { email: string; password: string }) =>
+    api.post('/auth/admin/login', data),
+
   logout: () => api.post('/auth/logout'),
 
   getMe: () => api.get('/auth/me'),

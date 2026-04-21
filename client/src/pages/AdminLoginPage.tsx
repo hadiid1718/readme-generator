@@ -10,7 +10,7 @@ import { useAuthStore } from '../stores/authStore';
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { adminLogin } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,29 +24,10 @@ const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      // Check if user is admin after login
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Login failed');
-        setLoading(false);
-        return;
-      }
-
-      // Fetch user and check role
-      const { authAPI } = await import('../lib/api');
-      const res = await authAPI.getMe();
-      const user = res.data.data.user;
-
-      if (user.role !== 'admin') {
-        setError('Access denied. Admin privileges required.');
-        localStorage.removeItem('token');
-        setLoading(false);
-        return;
-      }
+      await adminLogin(email, password);
 
       toast.success('Welcome, Admin!');
-      navigate('/admin');
+      navigate('/admin', { replace: true });
     } catch (err: any) {
       const message = err.response?.data?.message || 'Invalid credentials';
       setError(message);

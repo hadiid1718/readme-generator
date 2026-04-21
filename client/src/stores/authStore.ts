@@ -13,6 +13,7 @@ interface AuthState {
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
+  adminLogin: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loadUser: () => Promise<void>;
@@ -27,6 +28,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (email: string, password: string) => {
     const response = await authAPI.login({ email, password });
+    const { user, token } = response.data.data;
+    localStorage.setItem('token', token);
+    set({ user, isAuthenticated: true, isLoading: false });
+  },
+
+  adminLogin: async (email: string, password: string) => {
+    const response = await authAPI.adminLogin({ email, password });
     const { user, token } = response.data.data;
     localStorage.setItem('token', token);
     set({ user, isAuthenticated: true, isLoading: false });
